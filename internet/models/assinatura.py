@@ -15,7 +15,7 @@ class Assinatura(BaseModel):
     tipo = models.CharField(max_length=10, null=False, blank=False,choices=TipoPlano, default=TipoPlano.STANDARD,)
     descricao = models.CharField(max_length=200, validators=[MinLengthValidator(20)], blank=True, null=True)
     mensalidade = models.DecimalField( max_digits=6, decimal_places=2,  validators=[MinValueValidator(0.00)])
-    donwload = models.IntegerField(validators=[MinValueValidator(10), MaxValueValidator(10000)])
+    download = models.IntegerField(validators=[MinValueValidator(10), MaxValueValidator(10000)])
     upload = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(10000)])
     franquia_dados = models.IntegerField(validators=[MinValueValidator(50)])
     fidelidade = models.DateField(validators=[validate_min_date_today])
@@ -23,29 +23,35 @@ class Assinatura(BaseModel):
     contratacao = models.DateField(default=timezone.now)
 
     def validate_max_plano(self):
-        if self.tipo == 'Básico' and self.donwload > 100 and self.upload > 100:
+        # Define limites máximos para cada tipo de plano
+        limites = {
+            'BAS': {'download': 100, 'upload': 100},
+            'STAND': {'download': 1000, 'upload': 1000},
+            'PREM': {'download': 5000, 'upload': 5000},
+            'MAS': {'download': 10000, 'upload': 10000},
+        }
+
+        # Verifica se o tipo da assinatura está nos limites definidos
+        if self.tipo in limites:
+            max_download = limites[self.tipo]['download']
+            max_upload = limites[self.tipo]['upload']
+
+            # Validação dos limites
+            if self.download > max_download or self.upload > max_upload:
+                raise ValidationError(
+                    f"Para o tipo {self.tipo}, os limites são:"
+                    f" download <= {max_download} e upload <= {max_upload}.",
+                    params={"tipo": self.tipo, "download": self.download, "upload": self.upload}
+                )
+        else:
             raise ValidationError(
-                "não pode > 100",
+                f"O tipo de assinatura '{self.tipo}' não é válido.",
                 params={"tipo": self.tipo}
             )
 
-        elif self.tipo == 'Padrão' and self.donwload > 1000 and self.upload > 1000:
-            raise ValidationError(
-                "não pode > 1000",
-                params={"tipo": self.tipo}
-            )
-
-        elif self.tipo == 'Premium' and self.donwload > 5000 and self.upload > 5000:
-            raise ValidationError(
-                "não pode > 5000",
-                params={"tipo": self.tipo}
-            )
-
-        elif self.tipo == 'Master' and self.donwload > 10000 and self.upload > 10000:
-            raise ValidationError(
-                "não pode > 10000",
-                params={"tipo": self.tipo}
-            )
+    def clean(self):
+        self.validate_max_plano()
+        super().clean()
 
 
     def __str__(self):

@@ -1,150 +1,76 @@
-from .internet.models.cliente import Cliente
-from .internet.models.assinatura import Assinatura
-from .internet.enumerations.tipo_plano import TipoPlano
+import os
+import sys
+import django
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from internet.models.cliente import Cliente
+from internet.models.assinatura import Assinatura
+from internet.enumerations.tipo_plano import TipoPlano
 
+# Configuração do Django
+sys.path.append('C:\\Users\\Windows 10 Pro\\OneDrive\\Área de Trabalho\\Scripts\\prova_dev1')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sulnet.settings')
+django.setup()
 
+# Criação do superusuário
 User = get_user_model()
-User.objects.create_superuser('ifrs','admin@myproject.com','ifrs')
+User.objects.create_superuser('ifrs', 'admin@myproject.com', 'ifrs')
 
-ryan = Cliente(
-    nome = 'Ryan Engel kskssk',
-    cpf = '11111111111',
-    endereco = 'rua kskskskssksksksksdsd',
-    cidade = 'porto alere kaka',
-    estado = 'rs',
-    telefone = '545454545454',
-    email = 'ryanzinho@mail.com',
-    ativo = True
-)
-ryan.full_clean()
-ryan.save()
 
-edu = Cliente(
-    nome = 'edu edu kskssk',
-    cpf = '99999999999',
-    endereco = 'rua edu kskskskssksksksksdsd',
-    cidade = 'porto edu kaka',
-    estado = 'rs',
-    telefone = '8794562132186',
-    email = 'eduzinhomal@mail.com',
-    ativo = False
-)
-edu.full_clean()
-edu.save()
+# Função para criar clientes
+def criar_cliente(nome, cpf, endereco, cidade, estado, telefone, email, ativo):
+    try:
+        cliente = Cliente(
+            nome=nome,
+            cpf=cpf,
+            endereco=endereco,
+            cidade=cidade,
+            estado=estado,
+            telefone=telefone,
+            email=email,
+            ativo=ativo,
+        )
+        cliente.full_clean()
+        cliente.save()
+        return cliente
+    except ValidationError as e:
+        print(f"Erro ao criar cliente {nome}: {e.message_dict}")
+        return None
 
-pedro = Cliente(
-    nome = 'pedro pedro kskssk',
-    cpf = '11111111111',
-    endereco = 'rua pedro kskskskssksksksksdsd',
-    cidade = 'porto pedro kaka',
-    estado = 'rs',
-    telefone = '879545564879',
-    email = 'pedropedro@mail.com',
-    ativo = True
-)
-pedro.full_clean()
-pedro.save()
 
-ric = Cliente(
-    nome = 'ric ric kskssk',
-    cpf = '11111111111',
-    endereco = 'rua ric kskskskssksksksksdsd',
-    cidade = 'porto ric kaka',
-    estado = 'rs',
-    telefone = '879545564879',
-    email = 'ricricric@mail.com',
-    ativo = True
-)
-ric.full_clean()
-ric.save()
+# Função para criar assinaturas
+def criar_assinatura(owner, tipo, descricao, mensalidade, download, upload, franquia_dados):
+    try:
+        assinatura = Assinatura(
+            owner=owner,
+            tipo=tipo,
+            descricao=descricao,
+            mensalidade=mensalidade,
+            download=download,  # Corrigido aqui
+            upload=upload,
+            franquia_dados=franquia_dados,
+            fidelidade=timezone.now() + timezone.timedelta(days=30),  # Data futura
+            habilitado=True,
+            contratacao=timezone.now(),
+        )
+        assinatura.full_clean()
+        assinatura.save()
+        return assinatura
+    except ValidationError as e:
+        print(f"Erro ao criar assinatura para o cliente {owner.nome}: {e.message_dict}")
+        return None
 
-ardo = Cliente(
-    nome = 'ardo ardo kskssk',
-    cpf = '11111111111',
-    endereco = 'rua ardo kskskskssksksksksdsd',
-    cidade = 'porto ardo kaka',
-    estado = 'rs',
-    telefone = '879545564879',
-    email = 'ardoardoardo@mail.com',
-    ativo = True
-)
-ardo.full_clean()
-ardo.save()
 
-ass1 = Assinatura(
-    owner = ryan,
-    tipo = TipoPlano.STANDARD,
-    descricao = 'fsaetadsfdsfdsfdsfads',
-    mensalidade = 500,
-    donwload = 152,
-    upload = 200,
-    franquia_dados = 500,
-    fidelidade = timezone.now(),
-    habilitado = True,
-    contratacao = timezone.now()
-)
-ass1.full_clean()
-ass1.save()
+ryan = criar_cliente('Ryan Engel', '11111111111', 'rua ksksks', 'porto alegre', 'rs', '545454545454', 'ryan@mail.com',
+                     True)
+edu = criar_cliente('Edusasaas K.', '22222222222', 'rua edu', 'porto edu', 'rs', '8794562132186', 'edu@mail.com', False)
+pedro = criar_cliente('pedrooooooo', '33333333333', 'rua fdsffsffsd', 'porto pedrooooo', 'rs', '634555435435',
+                      'pedroooo@mail.com', True)
 
-ass2 = Assinatura(
-    owner = edu,
-    tipo = TipoPlano.PREMIUM,
-    descricao = 'fsaetadsfdsfdsfdsfads',
-    mensalidade = 500,
-    donwload = 152,
-    upload = 200,
-    franquia_dados = 500,
-    fidelidade = timezone.now(),
-    habilitado = True,
-    contratacao = timezone.now()
-)
-ass2.full_clean()
-ass2.save()
-
-ass3 = Assinatura(
-    owner = pedro,
-    tipo = TipoPlano.MASTER,
-    descricao = 'fsaetadsfdsfdsfdsfads',
-    mensalidade = 500,
-    donwload = 152,
-    upload = 200,
-    franquia_dados = 500,
-    fidelidade = timezone.now(),
-    habilitado = True,
-    contratacao = timezone.now()
-)
-ass3.full_clean()
-ass3.save()
-
-ass4 = Assinatura(
-    owner = ric,
-    tipo = TipoPlano.STANDARD,
-    descricao = 'fsaetadsfdsfdsfdsfads',
-    mensalidade = 500,
-    donwload = 152,
-    upload = 200,
-    franquia_dados = 500,
-    fidelidade = timezone.now(),
-    habilitado = True,
-    contratacao = timezone.now()
-)
-ass4.full_clean()
-ass4.save()
-
-ass5 = Assinatura(
-    owner = ardo,
-    tipo = TipoPlano.STANDARD,
-    descricao = 'fsaetadsfdsfdsfdsfads',
-    mensalidade = 500,
-    donwload = 152,
-    upload = 200,
-    franquia_dados = 500,
-    fidelidade = timezone.now(),
-    habilitado = True,
-    contratacao = timezone.now()
-)
-ass5.full_clean()
-ass5.save()
-
+if ryan:
+    criar_assinatura(ryan, TipoPlano.STANDARD, 'Standard Plan', 500, 152, 200, 500)
+if edu:
+    criar_assinatura(edu, TipoPlano.PREMIUM, 'Premium Plan', 800, 300, 400, 1000)
+if pedro:
+    criar_assinatura(pedro, TipoPlano.MASTER, 'Master Plan', 1200, 1000, 800, 2000)
